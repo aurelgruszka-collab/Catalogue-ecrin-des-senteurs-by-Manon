@@ -19,17 +19,23 @@ function openDrawer() {
 function closeDrawer() {
   drawer.classList.remove('open');
   shade.classList.remove('open');
-}
-
-function goHome() {
+window.goHome = function () {
   closeDrawer();
 
-  $('#reader').classList.remove('active');
-  $('#home').classList.add('active');
+  const reader = document.querySelector('#reader');
+  const home = document.querySelector('#home');
+
+  if (reader) {
+    reader.classList.remove('active');
+  }
+
+  if (home) {
+    home.classList.add('active');
+  }
 
   history.replaceState(null, '', location.pathname);
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+};
 
 $('#menuBtn').onclick = openDrawer;
 $('#tocBtn').onclick = openDrawer;
@@ -37,10 +43,11 @@ $('#tocBottomBtn').onclick = openDrawer;
 $('#closeDrawer').onclick = closeDrawer;
 shade.onclick = closeDrawer;
 
-const homeMenuBtn = $('#homeMenuBtn');
+  const homeMenuBtn = $('#homeMenuBtn');
 if (homeMenuBtn) {
-  homeMenuBtn.onclick = goHome;
+  homeMenuBtn.onclick = window.goHome;
 }
+
 
 function renderList() {
   const list = $('#catalogueList');
