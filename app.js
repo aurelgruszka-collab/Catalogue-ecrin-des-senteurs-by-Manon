@@ -12,81 +12,64 @@ const img = $('#pageImage');
 const loader = $('#loader');
 
 function openDrawer() {
-  drawer.classList.add('open');
-  shade.classList.add('open');
+  if (drawer) drawer.classList.add('open');
+  if (shade) shade.classList.add('open');
 }
 
 function closeDrawer() {
-  drawer.classList.remove('open');
-  shade.classList.remove('open');
-window.goHome = function () {
-  closeDrawer();
-
-  const reader = document.querySelector('#reader');
-  const home = document.querySelector('#home');
-
-  if (reader) {
-    reader.classList.remove('active');
-  }
-
-  if (home) {
-    home.classList.add('active');
-  }
-
-  history.replaceState(null, '', location.pathname);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-$('#menuBtn').onclick = openDrawer;
-$('#tocBtn').onclick = openDrawer;
-$('#tocBottomBtn').onclick = openDrawer;
-$('#closeDrawer').onclick = closeDrawer;
-shade.onclick = closeDrawer;
-
-  const homeMenuBtn = $('#homeMenuBtn');
-if (homeMenuBtn) {
-  homeMenuBtn.onclick = window.goHome;
+  if (drawer) drawer.classList.remove('open');
+  if (shade) shade.classList.remove('open');
 }
 
+if ($('#menuBtn')) $('#menuBtn').onclick = openDrawer;
+if ($('#tocBtn')) $('#tocBtn').onclick = openDrawer;
+if ($('#tocBottomBtn')) $('#tocBottomBtn').onclick = openDrawer;
+if ($('#closeDrawer')) $('#closeDrawer').onclick = closeDrawer;
+if (shade) shade.onclick = closeDrawer;
 
 function renderList() {
   const list = $('#catalogueList');
-  list.innerHTML = '';
-
   const homeToc = $('#homeToc');
-  homeToc.innerHTML = '';
+  const sel = $('#catalogueSelect');
+
+  if (list) list.innerHTML = '';
+  if (homeToc) homeToc.innerHTML = '';
+  if (sel) sel.innerHTML = '';
 
   cats.forEach((c, i) => {
     const label = `${c.pageCount} page${c.pageCount > 1 ? 's' : ''}`;
     const html = `<strong>${c.title}</strong><span>${label}</span><div class="fileName">${c.fileName || ''}</div>`;
 
-    let b = document.createElement('button');
-    b.className = 'catItem';
-    b.innerHTML = html;
-    b.onclick = () => {
-      showReader(i, 1);
-      closeDrawer();
-    };
-    list.appendChild(b);
+    if (list) {
+      const b = document.createElement('button');
+      b.className = 'catItem';
+      b.innerHTML = html;
+      b.onclick = () => {
+        showReader(i, 1);
+        closeDrawer();
+      };
+      list.appendChild(b);
+    }
 
-    let h = document.createElement('button');
-    h.className = 'tocCard';
-    h.innerHTML = html;
-    h.onclick = () => showReader(i, 1);
-    homeToc.appendChild(h);
+    if (homeToc) {
+      const h = document.createElement('button');
+      h.className = 'tocCard';
+      h.innerHTML = html;
+      h.onclick = () => showReader(i, 1);
+      homeToc.appendChild(h);
+    }
+
+    if (sel) {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = `${c.title} - ${c.fileName || ''}`;
+      sel.appendChild(o);
+    }
   });
 
-  const sel = $('#catalogueSelect');
-  sel.innerHTML = '';
-
-  cats.forEach((c, i) => {
-    let o = document.createElement('option');
-    o.value = i;
-    o.textContent = `${c.title} - ${c.fileName || ''}`;
-    sel.appendChild(o);
-  });
-
-  sel.onchange = e => showReader(+e.target.value, 1);
+  if (sel) {
+    sel.onchange = e => showReader(Number(e.target.value), 1);
+  }
 }
 
 function currentSrc() {
@@ -103,28 +86,27 @@ function preload(src) {
 }
 
 async function updatePage(anim = false) {
-  const c = cats[cat];
+  if (!cats.length) return;
 
+  const c = cats[cat];
   page = Math.max(1, Math.min(page, c.pageCount));
 
-  $('#catalogueSelect').value = cat;
-  $('#pageLabel').textContent = `${page} / ${c.pageCount}`;
-  $('#readerTitle').textContent = `${c.title} - ${c.fileName || ''}`;
+  if ($('#catalogueSelect')) $('#catalogueSelect').value = cat;
+  if ($('#pageLabel')) $('#pageLabel').textContent = `${page} / ${c.pageCount}`;
+  if ($('#readerTitle')) $('#readerTitle').textContent = `${c.title} - ${c.fileName || ''}`;
 
   history.replaceState(null, '', `#${c.slug}/page-${page}`);
 
-  loader.classList.remove('hidden');
-
-  if (anim) {
-    img.classList.add('turning');
-  }
+  if (loader) loader.classList.remove('hidden');
+  if (anim && img) img.classList.add('turning');
 
   const src = currentSrc();
 
   try {
     await preload(src);
-    img.src = src;
-    $('#zoomImage').src = src;
+
+    if (img) img.src = src;
+    if ($('#zoomImage')) $('#zoomImage').src = src;
 
     if (page < c.pageCount) {
       preload(c.pages[page]).catch(() => {});
@@ -133,8 +115,8 @@ async function updatePage(anim = false) {
     alert('Cette page image n’a pas pu être chargée.');
   } finally {
     setTimeout(() => {
-      img.classList.remove('turning');
-      loader.classList.add('hidden');
+      if (img) img.classList.remove('turning');
+      if (loader) loader.classList.add('hidden');
     }, 120);
   }
 }
@@ -143,117 +125,128 @@ function showReader(c = 0, p = 1) {
   cat = c;
   page = p;
 
-  $('#home').classList.remove('active');
-  $('#reader').classList.add('active');
+  if ($('#home')) $('#home').classList.remove('active');
+  if ($('#reader')) $('#reader').classList.add('active');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
   updatePage();
 }
 
-$('#startBtn').onclick = () => showReader(0, 1);
+if ($('#startBtn')) {
+  $('#startBtn').onclick = () => showReader(0, 1);
+}
 
-$('#prevBtn').onclick = () => {
-  if (page > 1) {
-    page--;
-    updatePage(true);
-  } else if (cat > 0) {
-    cat--;
-    page = cats[cat].pageCount;
-    updatePage(true);
-  }
-};
+if ($('#prevBtn')) {
+  $('#prevBtn').onclick = () => {
+    if (page > 1) {
+      page--;
+      updatePage(true);
+    } else if (cat > 0) {
+      cat--;
+      page = cats[cat].pageCount;
+      updatePage(true);
+    }
+  };
+}
 
-$('#nextBtn').onclick = () => {
-  if (page < cats[cat].pageCount) {
-    page++;
-    updatePage(true);
-  } else if (cat < cats.length - 1) {
-    cat++;
-    page = 1;
-    updatePage(true);
-  }
-};
+if ($('#nextBtn')) {
+  $('#nextBtn').onclick = () => {
+    if (page < cats[cat].pageCount) {
+      page++;
+      updatePage(true);
+    } else if (cat < cats.length - 1) {
+      cat++;
+      page = 1;
+      updatePage(true);
+    }
+  };
+}
 
 let sx = 0;
 
-$('#book').addEventListener(
-  'touchstart',
-  e => sx = e.touches[0].clientX,
-  { passive: true }
-);
+if ($('#book')) {
+  $('#book').addEventListener(
+    'touchstart',
+    e => sx = e.touches[0].clientX,
+    { passive: true }
+  );
 
-$('#book').addEventListener(
-  'touchend',
-  e => {
-    const dx = e.changedTouches[0].clientX - sx;
+  $('#book').addEventListener(
+    'touchend',
+    e => {
+      const dx = e.changedTouches[0].clientX - sx;
 
-    if (Math.abs(dx) > 45) {
-      dx < 0 ? $('#nextBtn').click() : $('#prevBtn').click();
-    }
-  },
-  { passive: true }
-);
+      if (Math.abs(dx) > 45) {
+        dx < 0 ? $('#nextBtn').click() : $('#prevBtn').click();
+      }
+    },
+    { passive: true }
+  );
+}
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') {
-    $('#nextBtn').click();
-  }
-
-  if (e.key === 'ArrowLeft') {
-    $('#prevBtn').click();
-  }
+  if (e.key === 'ArrowRight' && $('#nextBtn')) $('#nextBtn').click();
+  if (e.key === 'ArrowLeft' && $('#prevBtn')) $('#prevBtn').click();
 
   if (e.key === 'Escape') {
     closeDrawer();
-    $('#zoomModal').classList.remove('open');
+    if ($('#zoomModal')) $('#zoomModal').classList.remove('open');
   }
 });
 
-$('#zoomBtn').onclick = () => {
-  $('#zoomImage').src = currentSrc();
-  $('#zoomModal').classList.add('open');
-};
+if ($('#zoomBtn')) {
+  $('#zoomBtn').onclick = () => {
+    if ($('#zoomImage')) $('#zoomImage').src = currentSrc();
+    if ($('#zoomModal')) $('#zoomModal').classList.add('open');
+  };
+}
 
-$('#closeZoom').onclick = () => {
-  $('#zoomModal').classList.remove('open');
-};
+if ($('#closeZoom')) {
+  $('#closeZoom').onclick = () => {
+    if ($('#zoomModal')) $('#zoomModal').classList.remove('open');
+  };
+}
 
-$('#search').oninput = e => {
-  const q = e.target.value.trim().toLowerCase();
-  const out = $('#searchResults');
+if ($('#search')) {
+  $('#search').oninput = e => {
+    const q = e.target.value.trim().toLowerCase();
+    const out = $('#searchResults');
 
-  out.innerHTML = '';
+    if (!out) return;
 
-  if (q.length < 2) return;
+    out.innerHTML = '';
 
-  const words = q.split(/\s+/).filter(Boolean);
-  const hits = idx
-    .filter(x => words.every(w => x.text.includes(w)))
-    .slice(0, 30);
+    if (q.length < 2) return;
 
-  if (!hits.length) {
-    out.innerHTML = '<div class="result">Aucun résultat trouvé.</div>';
-    return;
-  }
+    const words = q.split(/\s+/).filter(Boolean);
+    const hits = idx
+      .filter(x => words.every(w => x.text.includes(w)))
+      .slice(0, 30);
 
-  hits.forEach(h => {
-    const r = document.createElement('button');
-    r.className = 'result';
+    if (!hits.length) {
+      out.innerHTML = '<div class="result">Aucun résultat trouvé.</div>';
+      return;
+    }
 
-    r.innerHTML = `
-      <strong>${cats[h.catalogue].title}</strong><br>
-      Page ${h.page}<br>
-      <small>${h.text.slice(0, 140)}...</small>
-    `;
+    hits.forEach(h => {
+      const r = document.createElement('button');
+      r.className = 'result';
 
-    r.onclick = () => {
-      showReader(h.catalogue, h.page);
-      closeDrawer();
-    };
+      r.innerHTML = `
+        <strong>${cats[h.catalogue].title}</strong><br>
+        Page ${h.page}<br>
+        <small>${h.text.slice(0, 140)}...</small>
+      `;
 
-    out.appendChild(r);
-  });
-};
+      r.onclick = () => {
+        showReader(h.catalogue, h.page);
+        closeDrawer();
+      };
+
+      out.appendChild(r);
+    });
+  };
+}
 
 renderList();
 
@@ -266,7 +259,7 @@ if (hash) {
     const ci = cats.findIndex(c => c.slug === m[1]);
 
     if (ci >= 0) {
-      showReader(ci, +m[2]);
+      showReader(ci, Number(m[2]));
     }
   }
 }
